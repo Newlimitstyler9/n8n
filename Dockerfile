@@ -4,14 +4,20 @@ FROM n8nio/n8n:1.51.1             # pin a stable tag
 # ---- 2) Switch to root for package installs --------------------------
 USER root
 
-# Install OS packages: ffmpeg (audio), chromium (browser), yt-dlp (CLI downloader)
+# Install OS packages: ffmpeg (audio), chromium (browser), curl (to fetch yt-dlp)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         ffmpeg \
         chromium \
-        yt-dlp && \
+        ca-certificates \
+        curl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+# Download the latest yt-dlp binary and make it executable
+RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
+     -o /usr/local/bin/yt-dlp && \
+    chmod a+rx /usr/local/bin/yt-dlp
 
 # ---- 3) Install global Node deps --------------------------------------
 RUN npm install -g \
@@ -25,7 +31,7 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 # ---- 4) Copy your patch directory into the image ----------------------
 COPY patch /data/patch
 
-# ---- 5) Run the patch script to inject stealth-loader -----------------
+# ---- 5) Run the patch script to inject custom browser loader ----------
 RUN chmod +x /data/patch/overwrite.sh && \
     /bin/bash /data/patch/overwrite.sh
 
