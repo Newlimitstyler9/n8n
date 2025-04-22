@@ -1,29 +1,33 @@
-# ---- 1) Base image -------------------------------------------------
+# ---- 1) Base n8n image ------------------------------------------------
 FROM n8nio/n8n:1.51.1             # pin a stable tag
 
-# ---- 2) Become root to install OS packages ------------------------
+# ---- 2) Switch to root for package installs --------------------------
 USER root
 
+# Install OS packages: ffmpeg (audio), chromium (browser), yt-dlp (CLI downloader)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        ffmpeg chromium yt-dlp && \
+        ffmpeg \
+        chromium \
+        yt-dlp && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# ---- 3) Install global Node deps ----------------------------------
+# ---- 3) Install global Node deps --------------------------------------
 RUN npm install -g \
       n8n-nodes-youtube-audio@latest \
       puppeteer-extra \
       puppeteer-extra-plugin-stealth
 
-# Puppeteer must know where Chromium is:
+# Tell Puppeteer where Chromium lives
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
-# ---- 4) Copy our patch directory ----------------------------------
+# ---- 4) Copy your patch directory into the image ----------------------
 COPY patch /data/patch
 
-# ---- 5) Run script that overwrites browser helper -----------------
-RUN /bin/bash /data/patch/overwrite.sh
+# ---- 5) Run the patch script to inject stealth-loader -----------------
+RUN chmod +x /data/patch/overwrite.sh && \
+    /bin/bash /data/patch/overwrite.sh
 
-# ---- 6) Drop back to node user ------------------------------------
+# ---- 6) Drop back to the default n8n user ----------------------------
 USER node
