@@ -1,5 +1,5 @@
 # ---- 1) Base n8n image ------------------------------------------------
-FROM n8nio/n8n:1.51.1             # pin a stable tag
+FROM n8nio/n8n:1.51.1
 
 # ---- 2) Switch to root for package installs --------------------------
 USER root
@@ -21,9 +21,10 @@ RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
 
 # ---- 3) Install global Node deps --------------------------------------
 RUN npm install -g \
-      n8n-nodes-youtube-audio@latest \
-      puppeteer-extra \
-      puppeteer-extra-plugin-stealth
+    n8n-nodes-youtube-audio@latest \
+    puppeteer-extra \
+    puppeteer-extra-plugin-stealth \
+    @mookielianhd/n8n-nodes-instagram
 
 # Tell Puppeteer where Chromium lives
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
